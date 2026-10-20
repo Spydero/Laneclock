@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a1210;
+  --fg: #f3efe6;
+  --muted: #9aab9f;
+  --accent: #2dd4bf;
+  --panel: #12201b;
+  --line: rgba(45, 212, 191, 0.16);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(45, 212, 191, 0.35);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-line {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out both;
+}
+
+.animate-fade-up-delay {
+  animation: fade-up 0.8s ease-out 0.15s both;
+}
+
+.animate-fade-up-delay-2 {
+  animation: fade-up 0.8s ease-out 0.3s both;
+}
+
+.clock-pulse {
+  animation: pulse-line 2.4s ease-in-out infinite;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-teal-400/15 bg-ink-800/80 backdrop-blur;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition;
+  }
+  .btn-primary {
+    @apply btn bg-teal-500 text-ink-950 hover:bg-teal-400;
+  }
+  .btn-ghost {
+    @apply btn border border-teal-400/20 bg-transparent text-sand-100 hover:border-teal-400/40 hover:bg-ink-700;
+  }
+  .input {
+    @apply w-full rounded-lg border border-teal-400/20 bg-ink-900 px-3 py-2 text-sm text-sand-100 outline-none placeholder:text-sand-400/50 focus:border-teal-400/50;
+  }
+  .label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-wide text-sand-400;
+  }
+  .badge {
+    @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium;
+  }
+}

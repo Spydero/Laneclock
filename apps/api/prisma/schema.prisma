@@ -1,0 +1,465 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Better Auth ───────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+  memberships   Membership[]
+  assignedShipments Shipment[] @relation("ShipmentAssignee")
+  phaseLogs     ShipmentPhase[]
+  comments      ShipmentComment[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  resolvedExceptions Exception[] @relation("ExceptionResolver")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ─── Domain enums ──────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  OPS
+  CLIENT
+}
+
+enum OrgApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FreightMode {
+  FTL
+  LTL
+  OCEAN
+  AIR
+  RAIL
+}
+
+enum ShipmentStatus {
+  BOOKED
+  DISPATCHED
+  AT_PICKUP
+  IN_TRANSIT
+  AT_DELIVERY
+  DELIVERED
+  ON_HOLD
+  CANCELLED
+}
+
+enum ShipmentPhaseType {
+  BOOKED
+  DISPATCHED
+  AT_PICKUP
+  IN_TRANSIT
+  AT_DELIVERY
+  DELIVERED
+}
+
+enum SlaOutcome {
+  EARLY
+  ON_TIME
+  LATE
+  PENDING
+}
+
+enum DelayReason {
+  TRAFFIC
+  WEATHER
+  DOCK_CONGESTION
+  DOCS
+  CUSTOMS
+  CARRIER
+  OTHER
+}
+
+enum ExceptionSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum ExceptionType {
+  LATE_VS_ETA
+  DWELL_OVER_THRESHOLD
+  MISSED_PHASE
+  ON_HOLD_TOO_LONG
+  MISSING_POD
+  AT_RISK
+}
+
+enum ExceptionStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+enum DocumentType {
+  BOL
+  POD
+  PACKING_LIST
+  INVOICE
+  OTHER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  DISPUTED
+}
+
+enum LocationType {
+  PORT
+  WAREHOUSE
+  HUB
+  CITY
+  AIRPORT
+}
+
+// ─── Organizations & membership ────────────────────────────
+
+model Organization {
+  id             String            @id @default(cuid())
+  name           String
+  slug           String            @unique
+  approvalStatus OrgApprovalStatus @default(PENDING)
+  approvedAt     DateTime?
+  rejectionReason String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  members           Membership[]
+  customerShipments Shipment[]     @relation("CustomerOrg")
+  tenantShipments   Shipment[]     @relation("TenantOrg")
+  auditLogs         AuditLog[]
+  rateCards         RateCard[]
+}
+
+model Membership {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String
+  role           Role
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+}
+
+// ─── Master data ───────────────────────────────────────────
+
+model Location {
+  id        String       @id @default(cuid())
+  code      String       @unique
+  name      String
+  city      String?
+  country   String
+  type      LocationType
+  createdAt DateTime     @default(now())
+
+  originLanes      Lane[]     @relation("LaneOrigin")
+  destinationLanes Lane[]     @relation("LaneDestination")
+  originShipments  Shipment[] @relation("OriginLocation")
+  destShipments    Shipment[] @relation("DestLocation")
+}
+
+model Lane {
+  id                    String   @id @default(cuid())
+  name                  String
+  originLocationId      String
+  destinationLocationId String
+  expectedTransitHours  Float
+  mode                  FreightMode @default(FTL)
+  active                Boolean  @default(true)
+  createdAt             DateTime @default(now())
+
+  originLocation      Location  @relation("LaneOrigin", fields: [originLocationId], references: [id])
+  destinationLocation Location  @relation("LaneDestination", fields: [destinationLocationId], references: [id])
+  shipments           Shipment[]
+  rateCards           RateCard[]
+
+  @@index([originLocationId, destinationLocationId])
+}
+
+model Carrier {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  modes     FreightMode[]
+  contactEmail String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  shipments Shipment[]
+  rateCards RateCard[]
+}
+
+// ─── Shipments ─────────────────────────────────────────────
+
+model Shipment {
+  id                    String         @id @default(cuid())
+  tenantOrgId           String
+  customerOrgId         String
+  carrierId             String?
+  laneId                String?
+  referenceCode         String
+  mode                  FreightMode
+  status                ShipmentStatus @default(BOOKED)
+  originLocationId      String
+  destinationLocationId String
+  promisedEtd           DateTime?
+  promisedEta           DateTime?
+  actualDeliveryAt      DateTime?
+  slaGraceHours         Float          @default(4)
+  slaOutcome            SlaOutcome     @default(PENDING)
+  inFull                Boolean        @default(true)
+  otif                  Boolean        @default(false)
+  weightKg              Float?
+  packageCount          Int?
+  containerCount        Int?
+  commodity             String?
+  hazmat                Boolean        @default(false)
+  holdReason            String?
+  holdStartedAt         DateTime?
+  delayReason           DelayReason?
+  assigneeId            String?
+  trackingTokenHash     String         @unique
+  trackingTokenHint     String
+  notes                 String?
+  // Cached hour metrics (recomputed on phase updates)
+  pickupDwellHours      Float?
+  transitHours          Float?
+  deliveryDwellHours    Float?
+  cycleTimeHours        Float?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  tenantOrg           Organization    @relation("TenantOrg", fields: [tenantOrgId], references: [id])
+  customerOrg         Organization    @relation("CustomerOrg", fields: [customerOrgId], references: [id])
+  carrier             Carrier?        @relation(fields: [carrierId], references: [id])
+  lane                Lane?           @relation(fields: [laneId], references: [id])
+  originLocation      Location        @relation("OriginLocation", fields: [originLocationId], references: [id])
+  destinationLocation Location        @relation("DestLocation", fields: [destinationLocationId], references: [id])
+  assignee            User?           @relation("ShipmentAssignee", fields: [assigneeId], references: [id])
+  phases              ShipmentPhase[]
+  comments            ShipmentComment[]
+  documents           Document[]
+  exceptions          Exception[]
+  invoice             Invoice?
+
+  @@unique([tenantOrgId, referenceCode])
+  @@index([tenantOrgId, status])
+  @@index([customerOrgId, status])
+  @@index([carrierId])
+  @@index([laneId])
+  @@index([slaOutcome])
+  @@index([promisedEta])
+}
+
+model ShipmentPhase {
+  id             String            @id @default(cuid())
+  shipmentId     String
+  phase          ShipmentPhaseType
+  plannedStartAt DateTime?
+  plannedEndAt   DateTime?
+  actualStartAt  DateTime?
+  actualEndAt    DateTime?
+  locationLabel  String?
+  notes          String?
+  delayReason    DelayReason?
+  createdById    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  shipment  Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  createdBy User?    @relation(fields: [createdById], references: [id])
+
+  @@unique([shipmentId, phase])
+  @@index([shipmentId])
+}
+
+model ShipmentComment {
+  id         String   @id @default(cuid())
+  shipmentId String
+  authorId   String
+  body       String
+  createdAt  DateTime @default(now())
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  author   User     @relation(fields: [authorId], references: [id])
+
+  @@index([shipmentId, createdAt])
+}
+
+model Document {
+  id         String       @id @default(cuid())
+  shipmentId String
+  name       String
+  type       DocumentType @default(OTHER)
+  mimeType   String       @default("application/pdf")
+  storageKey String
+  sizeBytes  Int?
+  uploadedAt DateTime     @default(now())
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+}
+
+// ─── Exceptions ────────────────────────────────────────────
+
+model Exception {
+  id           String            @id @default(cuid())
+  shipmentId   String
+  type         ExceptionType
+  severity     ExceptionSeverity @default(WARNING)
+  status       ExceptionStatus   @default(OPEN)
+  title        String
+  description  String
+  acknowledgedAt DateTime?
+  resolvedAt   DateTime?
+  resolvedById String?
+  resolveNote  String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  resolvedBy User?    @relation("ExceptionResolver", fields: [resolvedById], references: [id])
+
+  @@index([status, severity])
+  @@index([shipmentId])
+}
+
+// ─── Audit ─────────────────────────────────────────────────
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String?
+  actorId        String?
+  action         String
+  entityType     String
+  entityId       String
+  summary        String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  actor        User?         @relation(fields: [actorId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+// ─── Finance (mock) ────────────────────────────────────────
+
+model RateCard {
+  id             String      @id @default(cuid())
+  organizationId String
+  laneId         String?
+  carrierId      String?
+  mode           FreightMode
+  baseRate       Decimal     @db.Decimal(12, 2)
+  currency       String      @default("USD")
+  active         Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  lane         Lane?        @relation(fields: [laneId], references: [id])
+  carrier      Carrier?     @relation(fields: [carrierId], references: [id])
+
+  @@index([organizationId, mode])
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  shipmentId     String        @unique
+  status         InvoiceStatus @default(DRAFT)
+  estimateAmount Decimal       @db.Decimal(12, 2)
+  invoiceAmount  Decimal       @db.Decimal(12, 2)
+  currency       String        @default("USD")
+  varianceFlag   Boolean       @default(false)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+}
+
+// ─── Notifications ─────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}

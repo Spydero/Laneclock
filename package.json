@@ -1,0 +1,21 @@
+{
+  "name": "laneclock",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @laneclock/api --filter @laneclock/web dev",
+    "dev:api": "pnpm --filter @laneclock/api dev",
+    "dev:web": "pnpm --filter @laneclock/web dev",
+    "build": "pnpm --filter @laneclock/shared build && pnpm --filter @laneclock/api build && pnpm --filter @laneclock/web build",
+    "db:generate": "pnpm --filter @laneclock/api exec prisma generate",
+    "db:migrate": "pnpm --filter @laneclock/api exec prisma migrate dev",
+    "db:push": "pnpm --filter @laneclock/api exec prisma db push",
+    "db:seed": "pnpm --filter @laneclock/api seed",
+    "db:studio": "pnpm --filter @laneclock/api exec prisma studio",
+    "test": "pnpm --filter @laneclock/api test",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.0"
+}

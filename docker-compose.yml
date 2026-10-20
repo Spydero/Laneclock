@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: laneclock
+      POSTGRES_PASSWORD: laneclock
+      POSTGRES_DB: laneclock
+    volumes:
+      - laneclock_pg:/var/lib/postgresql/data
+
+volumes:
+  laneclock_pg:
