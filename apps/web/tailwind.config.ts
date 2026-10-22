@@ -5,28 +5,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Semantic surfaces (light corporate)
         ink: {
-          950: "#0a1210",
-          900: "#0f1c18",
-          800: "#152620",
-          700: "#1c332b",
-          600: "#2a4a3e",
+          950: "#f4f6f9",
+          900: "#e9eef4",
+          800: "#ffffff",
+          700: "#f0f3f7",
+          600: "#d7dee8",
         },
         teal: {
-          300: "#5eead4",
-          400: "#2dd4bf",
-          500: "#14b8a6",
-          600: "#0d9488",
+          300: "#0f766e",
+          400: "#0d6e6e",
+          500: "#0b5f5f",
+          600: "#084848",
         },
         sand: {
-          100: "#f3efe6",
-          200: "#e6dfd0",
-          400: "#c4b89a",
+          100: "#0b1f33",
+          200: "#1a3348",
+          400: "#5b6b7c",
+        },
+        navy: {
+          800: "#13293d",
+          900: "#0b1f33",
         },
         signal: {
-          late: "#e85d4c",
-          warn: "#e3a008",
-          ok: "#2f9e6e",
+          late: "#c23b2a",
+          warn: "#b8860b",
+          ok: "#1f7a4d",
         },
       },
       fontFamily: {
@@ -36,12 +41,17 @@ const config: Config = {
       },
       backgroundImage: {
         "grid-fade":
-          "linear-gradient(to right, rgba(45,212,191,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(45,212,191,0.06) 1px, transparent 1px)",
+          "linear-gradient(to right, rgba(13,110,110,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(13,110,110,0.05) 1px, transparent 1px)",
         "hero-glow":
-          "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(45,212,191,0.22), transparent), radial-gradient(ellipse 60% 40% at 90% 10%, rgba(196,184,154,0.12), transparent)",
+          "linear-gradient(180deg, #e8eef5 0%, #f4f6f9 42%, #f4f6f9 100%)",
+        "corp-band":
+          "linear-gradient(90deg, #0b1f33 0%, #0d6e6e 100%)",
       },
       backgroundSize: {
-        grid: "48px 48px",
+        grid: "40px 40px",
+      },
+      boxShadow: {
+        panel: "0 1px 2px rgba(11, 31, 51, 0.04), 0 1px 3px rgba(11, 31, 51, 0.06)",
       },
     },
   },

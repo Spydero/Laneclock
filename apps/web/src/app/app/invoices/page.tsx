@@ -28,7 +28,7 @@ export default function InvoicesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-4xl">Invoices (mock)</h1>
-        <p className="text-sand-400">No Stripe — status + variance flags only.</p>
+        <p className="text-sand-400">No Stripe. Status and variance flags only.</p>
       </div>
       <div className="panel overflow-x-auto">
         <table className="w-full min-w-[700px] text-left text-sm">

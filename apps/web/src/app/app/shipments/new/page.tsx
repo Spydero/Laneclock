@@ -122,7 +122,7 @@ export default function NewShipmentPage() {
               });
             }}
           >
-            <option value="">—</option>
+            <option value="">-</option>
             {lanes.map((l) => (
               <option key={l.id} value={l.id}>
                 {l.name}
@@ -138,7 +138,7 @@ export default function NewShipmentPage() {
           >
             {locations.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.code} — {l.name}
+                {l.code} - {l.name}
               </option>
             ))}
           </select>
@@ -151,7 +151,7 @@ export default function NewShipmentPage() {
           >
             {locations.map((l) => (
               <option key={l.id} value={l.id}>
-                {l.code} — {l.name}
+                {l.code} - {l.name}
               </option>
             ))}
           </select>
@@ -162,7 +162,7 @@ export default function NewShipmentPage() {
             value={form.carrierId}
             onChange={(e) => setForm({ ...form, carrierId: e.target.value })}
           >
-            <option value="">—</option>
+            <option value="">-</option>
             {carriers.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}

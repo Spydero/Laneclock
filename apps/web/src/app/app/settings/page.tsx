@@ -22,9 +22,9 @@ export default function SettingsPage() {
       <div className="panel space-y-3 p-6 text-sm">
         <Row k="Name" v={me.user.name} />
         <Row k="Email" v={me.user.email} />
-        <Row k="Role" v={me.membership?.role ?? "—"} />
-        <Row k="Organization" v={me.membership?.organization.name ?? "—"} />
-        <Row k="Approval" v={me.membership?.organization.approvalStatus ?? "—"} />
+        <Row k="Role" v={me.membership?.role ?? "-"} />
+        <Row k="Organization" v={me.membership?.organization.name ?? "-"} />
+        <Row k="Approval" v={me.membership?.organization.approvalStatus ?? "-"} />
       </div>
       <p className="text-xs text-sand-400">
         Password changes use BetterAuth account flows in production; demo accounts stay on{" "}

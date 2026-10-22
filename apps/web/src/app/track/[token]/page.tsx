@@ -66,7 +66,7 @@ export default function PublicTrackPage() {
             </div>
             <div>
               <dt className="text-sand-400">Carrier</dt>
-              <dd>{shipment.carrier?.name ?? "—"}</dd>
+              <dd>{shipment.carrier?.name ?? "-"}</dd>
             </div>
           </dl>
         </div>

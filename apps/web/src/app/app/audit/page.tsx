@@ -74,7 +74,7 @@ export default function AuditPage() {
                   onClick={() => setSelected(log)}
                 >
                   <td className="px-4 py-3 text-sand-400">{fmtDate(log.createdAt)}</td>
-                  <td className="px-4 py-3">{log.actor?.name ?? "—"}</td>
+                  <td className="px-4 py-3">{log.actor?.name ?? "-"}</td>
                   <td className="px-4 py-3 font-mono text-xs text-teal-300">{log.action}</td>
                   <td className="px-4 py-3">{log.summary}</td>
                 </tr>

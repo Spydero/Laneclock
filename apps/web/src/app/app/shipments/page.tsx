@@ -112,7 +112,7 @@ export default function ShipmentsPage() {
                 </td>
                 <td className="px-4 py-3 font-mono text-sand-200">{fmtHours(s.cycleTimeHours)}</td>
                 <td className="px-4 py-3 text-sand-400">{fmtDate(s.promisedEta)}</td>
-                <td className="px-4 py-3">{s.carrier?.name ?? "—"}</td>
+                <td className="px-4 py-3">{s.carrier?.name ?? "-"}</td>
               </tr>
             ))}
           </tbody>

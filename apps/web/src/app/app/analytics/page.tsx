@@ -18,10 +18,17 @@ import { api } from "@/lib/api";
 import { StatCard } from "@/components/StatCard";
 
 const tooltipStyle = {
-  background: "#12201b",
-  border: "1px solid rgba(45,212,191,0.2)",
-  borderRadius: 8,
+  background: "#ffffff",
+  border: "1px solid #d7dee8",
+  borderRadius: 6,
+  color: "#0b1f33",
 };
+const axisTick = { fill: "#5b6b7c", fontSize: 11 };
+const gridStroke = "rgba(11,31,51,0.08)";
+const accent = "#0d6e6e";
+const accentMuted = "#94a3b8";
+const danger = "#c23b2a";
+const warn = "#b8860b";
 
 export default function AnalyticsPage() {
   const [dash, setDash] = useState<{
@@ -80,24 +87,24 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="OTIF" value={dash ? `${dash.otifPercent.toFixed(0)}%` : "—"} />
+        <StatCard label="OTIF" value={dash ? `${dash.otifPercent.toFixed(0)}%` : "-"} />
         <StatCard
           label="Avg cycle"
-          value={dash ? `${dash.avgCycleTimeHours.toFixed(1)}h` : "—"}
+          value={dash ? `${dash.avgCycleTimeHours.toFixed(1)}h` : "-"}
         />
-        <StatCard label="Delayed" value={dash?.delayed ?? "—"} />
-        <StatCard label="Active" value={dash?.active ?? "—"} />
+        <StatCard label="Delayed" value={dash?.delayed ?? "-"} />
+        <StatCard label="Active" value={dash?.active ?? "-"} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartPanel title="OTIF trend">
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={otif}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="date" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#9aab9f", fontSize: 11 }} domain={[0, 100]} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="date" tick={axisTick} />
+              <YAxis tick={axisTick} domain={[0, 100]} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Line type="monotone" dataKey="otifPercent" stroke="#2dd4bf" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="otifPercent" stroke={accent} strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -105,18 +112,18 @@ export default function AnalyticsPage() {
         <ChartPanel title="Volume vs on-time">
           <ResponsiveContainer width="100%" height={240}>
             <ComposedChart data={volOn}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="date" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis yAxisId="l" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis yAxisId="r" orientation="right" domain={[0, 100]} tick={{ fill: "#9aab9f", fontSize: 11 }} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="date" tick={axisTick} />
+              <YAxis yAxisId="l" tick={axisTick} />
+              <YAxis yAxisId="r" orientation="right" domain={[0, 100]} tick={axisTick} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend />
-              <Bar yAxisId="l" dataKey="volume" fill="#0d9488" name="Volume" />
+              <Bar yAxisId="l" dataKey="volume" fill={accent} name="Volume" />
               <Line
                 yAxisId="r"
                 type="monotone"
                 dataKey="onTimePercent"
-                stroke="#c4b89a"
+                stroke={accentMuted}
                 name="On-time %"
                 strokeWidth={2}
               />
@@ -127,11 +134,11 @@ export default function AnalyticsPage() {
         <ChartPanel title="Cycle-time distribution">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={cycle}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="label" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#9aab9f", fontSize: 11 }} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="label" tick={axisTick} />
+              <YAxis tick={axisTick} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" fill="#14b8a6" />
+              <Bar dataKey="count" fill={accent} />
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -139,11 +146,11 @@ export default function AnalyticsPage() {
         <ChartPanel title="Dwell by facility">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={dwell?.byFacility ?? []}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="facility" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#9aab9f", fontSize: 11 }} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="facility" tick={axisTick} />
+              <YAxis tick={axisTick} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="avgDwellHours" fill="#e3a008" name="Avg dwell h" />
+              <Bar dataKey="avgDwellHours" fill={warn} name="Avg dwell h" />
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -151,11 +158,11 @@ export default function AnalyticsPage() {
         <ChartPanel title="Dwell by day of week">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={dwell?.byDayOfWeek ?? []}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="day" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#9aab9f", fontSize: 11 }} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="day" tick={axisTick} />
+              <YAxis tick={axisTick} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="avgDwellHours" fill="#5eead4" />
+              <Bar dataKey="avgDwellHours" fill={accent} />
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -163,13 +170,13 @@ export default function AnalyticsPage() {
         <ChartPanel title="Lane performance (expected vs actual hours)">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={lanes}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="lane" tick={{ fill: "#9aab9f", fontSize: 10 }} />
-              <YAxis tick={{ fill: "#9aab9f", fontSize: 11 }} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="lane" tick={{ ...axisTick, fontSize: 10 }} />
+              <YAxis tick={axisTick} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend />
-              <Bar dataKey="expectedHours" fill="#2a4a3e" name="Expected" />
-              <Bar dataKey="actualHours" fill="#2dd4bf" name="Actual" />
+              <Bar dataKey="expectedHours" fill={accentMuted} name="Expected" />
+              <Bar dataKey="actualHours" fill={accent} name="Actual" />
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -177,13 +184,13 @@ export default function AnalyticsPage() {
         <ChartPanel title="Mode mix">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={modes}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="mode" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#9aab9f", fontSize: 11 }} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="mode" tick={axisTick} />
+              <YAxis tick={axisTick} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend />
-              <Bar dataKey="volume" fill="#14b8a6" name="Volume" />
-              <Bar dataKey="delayed" fill="#e85d4c" name="Delayed" />
+              <Bar dataKey="volume" fill={accent} name="Volume" />
+              <Bar dataKey="delayed" fill={danger} name="Delayed" />
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -191,17 +198,17 @@ export default function AnalyticsPage() {
         <ChartPanel title="Delay reasons (Pareto)">
           <ResponsiveContainer width="100%" height={240}>
             <ComposedChart data={pareto}>
-              <CartesianGrid stroke="rgba(45,212,191,0.1)" />
-              <XAxis dataKey="reason" tick={{ fill: "#9aab9f", fontSize: 10 }} />
-              <YAxis yAxisId="l" tick={{ fill: "#9aab9f", fontSize: 11 }} />
-              <YAxis yAxisId="r" orientation="right" domain={[0, 100]} tick={{ fill: "#9aab9f", fontSize: 11 }} />
+              <CartesianGrid stroke={gridStroke} />
+              <XAxis dataKey="reason" tick={{ ...axisTick, fontSize: 10 }} />
+              <YAxis yAxisId="l" tick={axisTick} />
+              <YAxis yAxisId="r" orientation="right" domain={[0, 100]} tick={axisTick} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar yAxisId="l" dataKey="count" fill="#e85d4c" name="Count" />
+              <Bar yAxisId="l" dataKey="count" fill={danger} name="Count" />
               <Line
                 yAxisId="r"
                 type="monotone"
                 dataKey="cumulativePercent"
-                stroke="#c4b89a"
+                stroke={accentMuted}
                 name="Cumulative %"
               />
             </ComposedChart>

@@ -27,7 +27,7 @@ export function PhaseTimeline({ phases }: { phases: Phase[] }) {
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="font-medium text-sand-100">{p.phase.replaceAll("_", " ")}</span>
                 {p.actualStartAt ? (
-                  <span className="font-mono text-xs text-teal-300">{fmtDate(p.actualStartAt)}</span>
+                  <span className="font-mono text-xs text-teal-400">{fmtDate(p.actualStartAt)}</span>
                 ) : (
                   <span className="text-xs text-sand-400">Pending</span>
                 )}

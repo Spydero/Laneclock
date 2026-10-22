@@ -40,7 +40,7 @@ aiRouter.post(
   async (req: AuthedRequest, res) => {
     if (!env.GEMINI_API_KEY) {
       return res.status(503).json({
-        error: "AI disabled — set GEMINI_API_KEY",
+        error: "AI disabled. Set GEMINI_API_KEY",
         code: "AI_DISABLED",
       });
     }
@@ -106,7 +106,7 @@ aiRouter.post(
   async (req: AuthedRequest, res) => {
     if (!env.GEMINI_API_KEY) {
       return res.status(503).json({
-        error: "AI disabled — set GEMINI_API_KEY",
+        error: "AI disabled. Set GEMINI_API_KEY",
         code: "AI_DISABLED",
       });
     }

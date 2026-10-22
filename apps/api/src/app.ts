@@ -12,6 +12,7 @@ import { exceptionsRouter } from "./routes/exceptions.js";
 import { exportRouter } from "./routes/export.js";
 import { meRouter } from "./routes/me.js";
 import { notificationsRouter } from "./routes/notifications.js";
+import { onboardingRouter } from "./routes/onboarding.js";
 import { searchRouter } from "./routes/search.js";
 import { shipmentsRouter } from "./routes/shipments.js";
 import { trackRouter } from "./routes/track.js";
@@ -19,9 +20,20 @@ import { trackRouter } from "./routes/track.js";
 export function createApp() {
   const app = express();
 
+  const allowedOrigins = new Set([
+    env.CORS_ORIGIN,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ]);
   app.use(
     cors({
-      origin: env.CORS_ORIGIN,
+      origin(origin, cb) {
+        if (!origin || allowedOrigins.has(origin) || /^http:\/\/192\.168\.\d+\.\d+:3000$/.test(origin)) {
+          cb(null, true);
+          return;
+        }
+        cb(null, false);
+      },
       credentials: true,
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     })
@@ -36,6 +48,7 @@ export function createApp() {
   app.get("/health", (_req, res) => res.json({ ok: true, service: "laneclock-api" }));
 
   app.use("/v1/me", meRouter);
+  app.use("/v1/onboarding", onboardingRouter);
   app.use("/v1/shipments", shipmentsRouter);
   app.use("/v1/track", trackRouter);
   app.use("/v1/exceptions", exceptionsRouter);

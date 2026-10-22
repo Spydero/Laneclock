@@ -9,7 +9,12 @@ export const auth = betterAuth({
   // Public URL users hit (Next.js rewrite proxies /api/auth → Express)
   baseURL: env.CORS_ORIGIN,
   basePath: "/api/auth",
-  trustedOrigins: [env.CORS_ORIGIN, env.BETTER_AUTH_URL],
+  trustedOrigins: [
+    env.CORS_ORIGIN,
+    env.BETTER_AUTH_URL,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ],
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,

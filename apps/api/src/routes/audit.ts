@@ -64,7 +64,7 @@ auditRouter.get(
         ? { organizationId: orgId }
         : {
             entityType: "Shipment",
-            // client feed: shipments belonging to their org via recent audit on those entities — simplified: tenant audits only for ops
+            // client feed: shipments belonging to their org via recent audit on those entities (simplified: tenant audits only for ops)
           },
       include: { actor: { select: { id: true, name: true, email: true } } },
       orderBy: { createdAt: "desc" },

@@ -25,7 +25,7 @@ export default function ExceptionsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-4xl">Exceptions</h1>
-          <p className="text-sand-400">Rule-driven inbox — manage by exception.</p>
+          <p className="text-sand-400">Rule-driven inbox. Manage by exception.</p>
         </div>
         <button
           className="btn-ghost"

@@ -11,3 +11,9 @@ coverage
 .pnpm-store
 apps/api/prisma/*.db
 apps/api/prisma/*.db-journal
+
+# Local agent / editor context (keep private)
+AGENTS.md
+CLAUDE.md
+.cursor/
+.claude/

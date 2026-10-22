@@ -32,6 +32,31 @@ export default function CommandPage() {
   }, []);
 
   const isClient = me?.membership?.role === "CLIENT";
+  const pending =
+    isClient && me?.membership?.organization.approvalStatus === "PENDING";
+  const rejected =
+    isClient && me?.membership?.organization.approvalStatus === "REJECTED";
+
+  if (pending || rejected) {
+    return (
+      <div className="mx-auto max-w-lg space-y-4 panel p-8 text-center">
+        <h1 className="font-display text-3xl">
+          {rejected ? "Access denied" : "Awaiting approval"}
+        </h1>
+        <p className="text-sand-400">
+          {rejected
+            ? "An Admin rejected your company. Reach out to Laneclock ops to resolve."
+            : `Thanks for registering ${me?.membership?.organization.name}. An Admin must approve your company before you can view shipments, tracking details, and SLA analytics.`}
+        </p>
+        <p className="text-sm text-sand-400">
+          Status:{" "}
+          <span className="font-mono text-teal-300">
+            {me?.membership?.organization.approvalStatus}
+          </span>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -47,17 +72,17 @@ export default function CommandPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard label="Active" value={dash?.active ?? "—"} />
-        <StatCard label="Delayed" value={dash?.delayed ?? "—"} hint="SLA late" />
-        <StatCard label="Exceptions" value={dash?.exceptionsOpen ?? "—"} />
-        <StatCard label="Delivered" value={dash?.delivered ?? "—"} />
+        <StatCard label="Active" value={dash?.active ?? "-"} />
+        <StatCard label="Delayed" value={dash?.delayed ?? "-"} hint="SLA late" />
+        <StatCard label="Exceptions" value={dash?.exceptionsOpen ?? "-"} />
+        <StatCard label="Delivered" value={dash?.delivered ?? "-"} />
         <StatCard
           label="Avg cycle"
-          value={dash ? `${dash.avgCycleTimeHours.toFixed(1)}h` : "—"}
+          value={dash ? `${dash.avgCycleTimeHours.toFixed(1)}h` : "-"}
         />
         <StatCard
           label="OTIF"
-          value={dash ? `${dash.otifPercent.toFixed(0)}%` : "—"}
+          value={dash ? `${dash.otifPercent.toFixed(0)}%` : "-"}
           hint="On-time in-full"
         />
       </div>

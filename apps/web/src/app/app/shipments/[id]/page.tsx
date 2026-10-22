@@ -112,14 +112,14 @@ export default function ShipmentDetailPage() {
             <h2 className="mb-3 font-display text-2xl">Details</h2>
             <dl className="space-y-2 text-sm">
               <Row k="Mode" v={shipment.mode} />
-              <Row k="Carrier" v={shipment.carrier?.name ?? "—"} />
-              <Row k="Lane" v={shipment.lane?.name ?? "—"} />
-              <Row k="Customer" v={shipment.customerOrg?.name ?? "—"} />
+              <Row k="Carrier" v={shipment.carrier?.name ?? "-"} />
+              <Row k="Lane" v={shipment.lane?.name ?? "-"} />
+              <Row k="Customer" v={shipment.customerOrg?.name ?? "-"} />
               <Row k="Promised ETA" v={fmtDate(shipment.promisedEta)} />
               <Row k="Actual delivery" v={fmtDate(shipment.actualDeliveryAt)} />
-              <Row k="Delay reason" v={shipment.delayReason ?? "—"} />
-              <Row k="Hold" v={shipment.holdReason ?? "—"} />
-              <Row k="Assignee" v={shipment.assignee?.name ?? "—"} />
+              <Row k="Delay reason" v={shipment.delayReason ?? "-"} />
+              <Row k="Hold" v={shipment.holdReason ?? "-"} />
+              <Row k="Assignee" v={shipment.assignee?.name ?? "-"} />
             </dl>
           </div>
 
@@ -157,7 +157,7 @@ export default function ShipmentDetailPage() {
                     );
                     setAiText(r.explanation);
                   } catch {
-                    setAiText("AI unavailable — set GEMINI_API_KEY or open /app/ai.");
+                    setAiText("AI unavailable. Set GEMINI_API_KEY or open /app/ai.");
                   }
                 }}
               >
@@ -237,7 +237,8 @@ export default function ShipmentDetailPage() {
             {shipment.exceptions!.map((ex) => (
               <li key={ex.id} className="text-sm">
                 <span className="badge bg-signal-warn/20 text-signal-warn mr-2">{ex.severity}</span>
-                {ex.title} — <span className="text-sand-400">{ex.status}</span>
+                {ex.title}{" "}
+                <span className="text-sand-400">({ex.status})</span>
               </li>
             ))}
           </ul>

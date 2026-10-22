@@ -1,13 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { api } from "@/lib/api";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,13 +14,16 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ink-950 bg-hero-glow px-4">
+    <div className="flex min-h-screen items-center justify-center bg-ink-950 px-4 py-12">
       <div className="w-full max-w-md panel p-8">
-        <Link href="/" className="font-display text-3xl">
+        <Link href="/" className="font-display text-3xl text-navy-900">
           Lane<span className="text-teal-400">clock</span>
         </Link>
+        <h1 className="mt-4 font-display text-2xl text-sand-100">Client registration</h1>
         <p className="mt-2 text-sm text-sand-400">
-          Client self-register — company starts PENDING until Admin approves.
+          Your company starts <span className="font-semibold text-teal-400">PENDING</span>. An Admin
+          must approve before shipments and SLA reports unlock. Ops accounts are created by Admin
+          only.
         </p>
         <form
           className="mt-6 space-y-4"
@@ -30,6 +31,12 @@ export default function RegisterPage() {
             e.preventDefault();
             setLoading(true);
             setError(null);
+            if (company.trim().length < 2) {
+              setLoading(false);
+              setError("Company name is required");
+              return;
+            }
+
             const { error: err } = await authClient.signUp.email({
               email,
               password,
@@ -40,29 +47,53 @@ export default function RegisterPage() {
               setError(err.message ?? "Sign up failed");
               return;
             }
-            // Best-effort: create pending org via public-ish note — admin can approve later.
-            // Membership for new clients is created on first admin approval flow in seed demos.
+
             try {
-              await api("/v1/me");
-            } catch {
-              /* ignore */
+              await api("/v1/onboarding/client", {
+                method: "POST",
+                body: JSON.stringify({ companyName: company.trim() }),
+              });
+            } catch (onboardErr) {
+              setLoading(false);
+              setError(
+                onboardErr instanceof Error
+                  ? onboardErr.message
+                  : "Account created but company setup failed. Contact Admin."
+              );
+              return;
             }
-            setLoading(false);
-            void company;
-            router.replace("/login");
+
+            window.location.href = "/app";
           }}
         >
           <div>
             <label className="label">Your name</label>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
           </div>
           <div>
             <label className="label">Company</label>
-            <input className="input" value={company} onChange={(e) => setCompany(e.target.value)} />
+            <input
+              className="input"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              required
+              minLength={2}
+            />
           </div>
           <div>
             <label className="label">Email</label>
-            <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <input
+              className="input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div>
             <label className="label">Password</label>
@@ -77,11 +108,14 @@ export default function RegisterPage() {
           </div>
           {error && <p className="text-sm text-signal-late">{error}</p>}
           <button className="btn-primary w-full" disabled={loading}>
-            {loading ? "Creating…" : "Create account"}
+            {loading ? "Creating…" : "Create client account"}
           </button>
         </form>
         <p className="mt-4 text-sm text-sand-400">
-          Prefer demo? <Link href="/login" className="text-teal-300">Sign in</Link>
+          Prefer demo?{" "}
+          <Link href="/login" className="font-medium text-teal-400 hover:underline">
+            Sign in
+          </Link>
         </p>
       </div>
     </div>
