@@ -1,8 +1,8 @@
-# Laneclock — Freight Control Tower
+# Laneclock: Freight Control Tower
 
 **Every shipment is a stopwatch.** Clock dwell and transit, score OTIF against promised ETAs, manage by exception, and keep an append-only audit trail.
 
-Portfolio demo — not a real carrier network. GPS / email / payments are mocked. Gemini AI is optional.
+Portfolio demo: not a real carrier network. GPS / email / payments are mocked. Gemini AI is optional.
 
 ## Stack
 
@@ -47,14 +47,14 @@ pnpm dev:web   # http://localhost:3000
 
 ## 10-minute walkthrough
 
-1. Open `/` — marketing hero (Laneclock brand + phase clock pitch).
+1. Open `/`: marketing hero (Laneclock brand + phase clock pitch).
 2. Sign in as `ops@laneclock.demo` / `demo1234`.
-3. **Command** — KPIs, exception peek, activity feed.
-4. **Shipments** — open a late or in-transit load; inspect phase clock hours.
+3. **Command**: KPIs, exception peek, activity feed.
+4. **Shipments**: open a late or in-transit load; inspect phase clock hours.
 5. Log a phase or generate a **public track** link → open `/track/...` in a private window.
-6. **Exceptions** — acknowledge / resolve; **Analytics** — OTIF, dwell, lanes, carriers, Pareto.
-7. **Audit** — click a row for before/after JSON.
-8. (Optional) **AI** — set `GEMINI_API_KEY`, generate weekly brief / delay explainer.
+6. **Exceptions**: acknowledge / resolve; **Analytics**: OTIF, dwell, lanes, carriers, Pareto.
+7. **Audit**: click a row for before/after JSON.
+8. (Optional) **AI**: set `GEMINI_API_KEY`, generate weekly brief / delay explainer.
 
 ## What is mocked vs real
 
@@ -62,7 +62,7 @@ pnpm dev:web   # http://localhost:3000
 |---------|----------|
 | Carrier GPS | Ops (or seed) logs phase timestamps |
 | Email | In-app notifications |
-| Payments | Mock invoices + variance flags — no Stripe |
+| Payments | Mock invoices + variance flags: no Stripe |
 | AI | Gemini if `GEMINI_API_KEY` set; otherwise disabled |
 
 ## Repo layout
@@ -75,10 +75,10 @@ packages/shared   Zod + SLA / hour helpers
 
 ## Thesis (interview one-liner)
 
-Laneclock is a freight control tower that treats every shipment as a stopwatch — we clock dwell and transit, score OTIF against promised ETAs, surface exceptions before they explode, and keep an append-only audit trail so ops can explain every change.
+Laneclock is a freight control tower that treats every shipment as a stopwatch: we clock dwell and transit, score OTIF against promised ETAs, surface exceptions before they explode, and keep an append-only audit trail so ops can explain every change.
 
 ## Tests
 
 ```bash
-pnpm test   # Vitest — hour math, SLA outcomes, phase metrics
+pnpm test   # Vitest: hour math, SLA outcomes, phase metrics
 ```
