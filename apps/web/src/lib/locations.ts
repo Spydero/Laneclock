@@ -1,6 +1,6 @@
 export type Facility = {
-  id: string;
-  code: string;
+  id?: string;
+  code?: string;
   name: string;
   city?: string | null;
   country: string;

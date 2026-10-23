@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { COUNTRIES } from "@/lib/countries";
 import { formatFacility, type Facility } from "@/lib/locations";
 
 type Lane = {
@@ -180,13 +181,18 @@ export default function NetworkPage() {
               </div>
               <div>
                 <label className="label">Country</label>
-                <input
+                <select
                   className="input"
                   value={locForm.country}
                   onChange={(e) => setLocForm({ ...locForm, country: e.target.value })}
-                  maxLength={2}
                   required
-                />
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name} ({c.code})
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div>

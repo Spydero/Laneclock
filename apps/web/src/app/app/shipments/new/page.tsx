@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { CityAutocomplete } from "@/components/CityAutocomplete";
 import { api } from "@/lib/api";
 import { COUNTRIES } from "@/lib/countries";
 import { formatFacility, type Facility } from "@/lib/locations";
@@ -76,8 +77,8 @@ export default function NewShipmentPage() {
       <div>
         <h1 className="font-display text-4xl text-sand-100">New shipment</h1>
         <p className="text-sand-400">
-          Enter any origin and destination worldwide. Places are saved when you book so Network and
-          lane templates can reuse them.
+          Type a city (local worldwide suggestions, no external API) or enter any name. Country list
+          covers all ISO countries. Places save to Network when you book.
         </p>
       </div>
       <form
@@ -229,34 +230,19 @@ function PlaceBlock({
   return (
     <fieldset className="space-y-3 rounded-md border border-ink-600 p-4">
       <legend className="px-1 font-display text-xl text-sand-100">{title}</legend>
-      {saved.length > 0 && (
-        <div>
-          <label className="label">Fill from saved facility (optional)</label>
-          <select
-            className="input"
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) onPickSaved(e.target.value);
-              e.target.value = "";
-            }}
-          >
-            <option value="">Type a new place below…</option>
-            {saved.map((l) => (
-              <option key={l.id} value={l.id}>
-                {formatFacility(l)}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="City">
-          <input
-            className="input"
+          <CityAutocomplete
             value={place.city}
-            onChange={(e) => onChange({ ...place, city: e.target.value })}
-            placeholder="Hamburg"
+            country={place.country}
             required
+            onChange={({ city, country }) =>
+              onChange({
+                ...place,
+                city,
+                ...(country ? { country } : {}),
+              })
+            }
           />
         </Field>
         <Field label="Country">
@@ -295,6 +281,28 @@ function PlaceBlock({
           </select>
         </Field>
       </div>
+      {saved.length > 0 && (
+        <details className="text-sm">
+          <summary className="cursor-pointer text-sand-400 hover:text-sand-200">
+            Reuse a place already on this account
+          </summary>
+          <select
+            className="input mt-2"
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) onPickSaved(e.target.value);
+              e.target.value = "";
+            }}
+          >
+            <option value="">Select saved facility…</option>
+            {saved.map((l) => (
+              <option key={l.id} value={l.id}>
+                {formatFacility(l)}
+              </option>
+            ))}
+          </select>
+        </details>
+      )}
     </fieldset>
   );
 }
