@@ -88,7 +88,8 @@ export default function NetworkPage() {
       <div>
         <h1 className="font-display text-4xl">Network</h1>
         <p className="text-sand-400">
-          Facilities, lane templates, and carriers. Add master data here; shipments pick facilities.
+          Saved facilities, lane templates, and carriers. New shipments can type any city worldwide;
+          booking also adds places here for reuse.
         </p>
       </div>
 

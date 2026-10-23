@@ -1,27 +1,33 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { COUNTRIES } from "@/lib/countries";
 import { formatFacility, type Facility } from "@/lib/locations";
 
-type Lane = {
-  id: string;
-  name: string;
-  mode: string;
-  expectedTransitHours: number;
-  originLocationId: string;
-  destinationLocationId: string;
-  originLocation?: Facility;
-  destinationLocation?: Facility;
-};
 type Carrier = { id: string; name: string };
 type Customer = { id: string; name: string };
 
+type PlaceForm = {
+  name: string;
+  city: string;
+  country: string;
+  type: string;
+};
+
+const emptyPlace = (country = "US"): PlaceForm => ({
+  name: "",
+  city: "",
+  country,
+  type: "CITY",
+});
+
+const SITE_TYPES = ["CITY", "WAREHOUSE", "HUB", "PORT", "AIRPORT"] as const;
+
 export default function NewShipmentPage() {
   const router = useRouter();
-  const [locations, setLocations] = useState<Facility[]>([]);
-  const [lanes, setLanes] = useState<Lane[]>([]);
+  const [saved, setSaved] = useState<Facility[]>([]);
   const [carriers, setCarriers] = useState<Carrier[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -30,79 +36,96 @@ export default function NewShipmentPage() {
     customerOrgId: "",
     carrierId: "",
     mode: "FTL",
-    originLocationId: "",
-    destinationLocationId: "",
     promisedEta: "",
     commodity: "General merchandise",
   });
+  const [origin, setOrigin] = useState<PlaceForm>(emptyPlace("US"));
+  const [destination, setDestination] = useState<PlaceForm>(emptyPlace("DE"));
 
   useEffect(() => {
     Promise.all([
       api<{ locations: Facility[] }>("/v1/catalog/locations"),
-      api<{ lanes: Lane[] }>("/v1/catalog/lanes"),
       api<{ carriers: Carrier[] }>("/v1/catalog/carriers"),
       api<{ customers: Customer[] }>("/v1/catalog/customers"),
-    ]).then(([loc, lane, car, cust]) => {
-      setLocations(loc.locations);
-      setLanes(lane.lanes);
+    ]).then(([loc, car, cust]) => {
+      setSaved(loc.locations);
       setCarriers(car.carriers);
       setCustomers(cust.customers);
-      const template = lane.lanes[0];
       setForm((f) => ({
         ...f,
         customerOrgId: cust.customers[0]?.id ?? "",
-        mode: template?.mode ?? f.mode,
-        originLocationId: template?.originLocationId ?? loc.locations[0]?.id ?? "",
-        destinationLocationId:
-          template?.destinationLocationId ?? loc.locations[1]?.id ?? loc.locations[0]?.id ?? "",
       }));
     });
   }, []);
 
-  const matchedLane = useMemo(() => {
-    if (!form.originLocationId || !form.destinationLocationId) return null;
-    return (
-      lanes.find(
-        (l) =>
-          l.originLocationId === form.originLocationId &&
-          l.destinationLocationId === form.destinationLocationId &&
-          l.mode === form.mode
-      ) ?? null
-    );
-  }, [lanes, form.originLocationId, form.destinationLocationId, form.mode]);
+  function applySaved(side: "origin" | "destination", id: string) {
+    const loc = saved.find((l) => l.id === id);
+    if (!loc) return;
+    const place: PlaceForm = {
+      name: loc.name,
+      city: loc.city ?? loc.name,
+      country: loc.country,
+      type: loc.type ?? "CITY",
+    };
+    if (side === "origin") setOrigin(place);
+    else setDestination(place);
+  }
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-4xl">New shipment</h1>
+        <h1 className="font-display text-4xl text-sand-100">New shipment</h1>
         <p className="text-sand-400">
-          Pick facilities. Matching lanes attach automatically for transit and rates.
+          Enter any origin and destination worldwide. Places are saved when you book so Network and
+          lane templates can reuse them.
         </p>
       </div>
       <form
-        className="panel space-y-4 p-6"
+        className="panel space-y-5 p-6"
         onSubmit={async (e) => {
           e.preventDefault();
           setError(null);
-          if (form.originLocationId === form.destinationLocationId) {
+          if (!origin.city.trim() || !destination.city.trim()) {
+            setError("City is required for origin and destination");
+            return;
+          }
+          const same =
+            origin.city.trim().toLowerCase() === destination.city.trim().toLowerCase() &&
+            origin.country === destination.country &&
+            (origin.name.trim() || origin.city).toLowerCase() ===
+              (destination.name.trim() || destination.city).toLowerCase();
+          if (same) {
             setError("Origin and destination must differ");
             return;
           }
           setSaving(true);
           try {
             const body = {
-              ...form,
+              customerOrgId: form.customerOrgId,
               carrierId: form.carrierId || null,
-              laneId: matchedLane?.id ?? null,
+              mode: form.mode,
+              commodity: form.commodity,
               promisedEta: form.promisedEta
                 ? new Date(form.promisedEta).toISOString()
                 : null,
               promisedEtd: new Date().toISOString(),
+              origin: {
+                name: origin.name.trim() || null,
+                city: origin.city.trim(),
+                country: origin.country,
+                type: origin.type,
+              },
+              destination: {
+                name: destination.name.trim() || null,
+                city: destination.city.trim(),
+                country: destination.country,
+                type: destination.type,
+              },
             };
-            const r = await api<{ shipment: { id: string }; trackingToken: string }>(
-              "/v1/shipments",
-              { method: "POST", body: JSON.stringify(body) }
-            );
+            const r = await api<{ shipment: { id: string } }>("/v1/shipments", {
+              method: "POST",
+              body: JSON.stringify(body),
+            });
             router.push(`/app/shipments/${r.shipment.id}`);
           } catch (err) {
             setError(err instanceof Error ? err.message : "Failed");
@@ -136,51 +159,22 @@ export default function NewShipmentPage() {
             ))}
           </select>
         </Field>
-        <Field label="Origin facility">
-          <select
-            className="input"
-            value={form.originLocationId}
-            onChange={(e) => setForm({ ...form, originLocationId: e.target.value })}
-            required
-          >
-            {locations.map((l) => (
-              <option key={l.id} value={l.id}>
-                {formatFacility(l)}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Destination facility">
-          <select
-            className="input"
-            value={form.destinationLocationId}
-            onChange={(e) => setForm({ ...form, destinationLocationId: e.target.value })}
-            required
-          >
-            {locations.map((l) => (
-              <option key={l.id} value={l.id}>
-                {formatFacility(l)}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <div className="rounded-md border border-ink-600 bg-ink-900/50 px-3 py-2 text-sm">
-          {matchedLane ? (
-            <>
-              <span className="text-sand-400">Matched lane: </span>
-              <span className="text-sand-100">{matchedLane.name}</span>
-              <span className="text-sand-400">
-                {" "}
-                · ~{matchedLane.expectedTransitHours}h expected
-              </span>
-            </>
-          ) : (
-            <span className="text-sand-400">
-              No lane template for this pair yet. Shipment still books; add a lane under Network if
-              this route is recurring.
-            </span>
-          )}
-        </div>
+
+        <PlaceBlock
+          title="Origin"
+          place={origin}
+          onChange={setOrigin}
+          saved={saved}
+          onPickSaved={(id) => applySaved("origin", id)}
+        />
+        <PlaceBlock
+          title="Destination"
+          place={destination}
+          onChange={setDestination}
+          saved={saved}
+          onPickSaved={(id) => applySaved("destination", id)}
+        />
+
         <Field label="Carrier">
           <select
             className="input"
@@ -216,6 +210,92 @@ export default function NewShipmentPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+function PlaceBlock({
+  title,
+  place,
+  onChange,
+  saved,
+  onPickSaved,
+}: {
+  title: string;
+  place: PlaceForm;
+  onChange: (p: PlaceForm) => void;
+  saved: Facility[];
+  onPickSaved: (id: string) => void;
+}) {
+  return (
+    <fieldset className="space-y-3 rounded-md border border-ink-600 p-4">
+      <legend className="px-1 font-display text-xl text-sand-100">{title}</legend>
+      {saved.length > 0 && (
+        <div>
+          <label className="label">Fill from saved facility (optional)</label>
+          <select
+            className="input"
+            defaultValue=""
+            onChange={(e) => {
+              if (e.target.value) onPickSaved(e.target.value);
+              e.target.value = "";
+            }}
+          >
+            <option value="">Type a new place below…</option>
+            {saved.map((l) => (
+              <option key={l.id} value={l.id}>
+                {formatFacility(l)}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="City">
+          <input
+            className="input"
+            value={place.city}
+            onChange={(e) => onChange({ ...place, city: e.target.value })}
+            placeholder="Hamburg"
+            required
+          />
+        </Field>
+        <Field label="Country">
+          <select
+            className="input"
+            value={place.country}
+            onChange={(e) => onChange({ ...place, country: e.target.value })}
+            required
+          >
+            {COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name} ({c.code})
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Site name (optional)">
+          <input
+            className="input"
+            value={place.name}
+            onChange={(e) => onChange({ ...place, name: e.target.value })}
+            placeholder="Port terminal, DC name…"
+          />
+        </Field>
+        <Field label="Site type">
+          <select
+            className="input"
+            value={place.type}
+            onChange={(e) => onChange({ ...place, type: e.target.value })}
+          >
+            {SITE_TYPES.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+    </fieldset>
   );
 }
 

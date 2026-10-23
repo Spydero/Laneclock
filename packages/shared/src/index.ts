@@ -141,13 +141,62 @@ export const CreateLaneSchema = z.object({
 });
 export type CreateLaneInput = z.infer<typeof CreateLaneSchema>;
 
-export const CreateShipmentSchema = z.object({
-  customerOrgId: z.string().min(1),
+/** Freeform worldwide place (city + ISO country). Resolved to Location on create. */
+export const PlaceInputSchema = z.object({
+  name: z.string().min(1).max(120).optional().nullable(),
+  city: z.string().min(1).max(80),
+  country: z.string().length(2),
+  type: LocationTypeSchema.optional().nullable(),
+});
+export type PlaceInput = z.infer<typeof PlaceInputSchema>;
+
+export const CreateShipmentSchema = z
+  .object({
+    customerOrgId: z.string().min(1),
+    carrierId: z.string().optional().nullable(),
+    laneId: z.string().optional().nullable(),
+    mode: FreightModeSchema,
+    originLocationId: z.string().optional().nullable(),
+    destinationLocationId: z.string().optional().nullable(),
+    origin: PlaceInputSchema.optional().nullable(),
+    destination: PlaceInputSchema.optional().nullable(),
+    promisedEtd: z.string().datetime().optional().nullable(),
+    promisedEta: z.string().datetime().optional().nullable(),
+    weightKg: z.number().positive().optional().nullable(),
+    packageCount: z.number().int().positive().optional().nullable(),
+    containerCount: z.number().int().positive().optional().nullable(),
+    commodity: z.string().optional().nullable(),
+    hazmat: z.boolean().optional(),
+    assigneeId: z.string().optional().nullable(),
+    notes: z.string().optional().nullable(),
+  })
+  .superRefine((val, ctx) => {
+    if (!val.originLocationId && !val.origin) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Origin place or location id required",
+        path: ["origin"],
+      });
+    }
+    if (!val.destinationLocationId && !val.destination) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Destination place or location id required",
+        path: ["destination"],
+      });
+    }
+  });
+export type CreateShipmentInput = z.infer<typeof CreateShipmentSchema>;
+
+export const UpdateShipmentSchema = z.object({
+  customerOrgId: z.string().min(1).optional(),
   carrierId: z.string().optional().nullable(),
   laneId: z.string().optional().nullable(),
-  mode: FreightModeSchema,
-  originLocationId: z.string().min(1),
-  destinationLocationId: z.string().min(1),
+  mode: FreightModeSchema.optional(),
+  originLocationId: z.string().optional().nullable(),
+  destinationLocationId: z.string().optional().nullable(),
+  origin: PlaceInputSchema.optional().nullable(),
+  destination: PlaceInputSchema.optional().nullable(),
   promisedEtd: z.string().datetime().optional().nullable(),
   promisedEta: z.string().datetime().optional().nullable(),
   weightKg: z.number().positive().optional().nullable(),
@@ -157,10 +206,6 @@ export const CreateShipmentSchema = z.object({
   hazmat: z.boolean().optional(),
   assigneeId: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-});
-export type CreateShipmentInput = z.infer<typeof CreateShipmentSchema>;
-
-export const UpdateShipmentSchema = CreateShipmentSchema.partial().extend({
   status: ShipmentStatusSchema.optional(),
   holdReason: z.string().optional().nullable(),
   delayReason: DelayReasonSchema.optional().nullable(),

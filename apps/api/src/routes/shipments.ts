@@ -7,6 +7,7 @@ import {
 import { Router } from "express";
 import { writeAudit } from "../lib/audit.js";
 import { prisma } from "../lib/prisma.js";
+import { resolveShipmentEndpoints } from "../lib/places.js";
 import { createTrackingToken, hashToken } from "../lib/tokens.js";
 import {
   ensureDefaultPhases,
@@ -94,12 +95,22 @@ shipmentsRouter.post(
       return res.status(400).json({ error: parsed.error.flatten(), code: "VALIDATION" });
     }
     const data = parsed.data;
-    if (data.originLocationId === data.destinationLocationId) {
+    let origin;
+    let destination;
+    try {
+      ({ origin, destination } = await resolveShipmentEndpoints({
+        originLocationId: data.originLocationId,
+        destinationLocationId: data.destinationLocationId,
+        origin: data.origin,
+        destination: data.destination,
+      }));
+    } catch (err) {
       return res.status(400).json({
-        error: "Origin and destination must differ",
+        error: err instanceof Error ? err.message : "Invalid places",
         code: "VALIDATION",
       });
     }
+
     const tenantOrgId = req.membership!.organizationId;
     const count = await prisma.shipment.count({ where: { tenantOrgId } });
     const referenceCode = `LC-${new Date().getFullYear()}-${String(count + 1).padStart(5, "0")}`;
@@ -110,9 +121,23 @@ shipmentsRouter.post(
       const matched = await prisma.lane.findFirst({
         where: {
           active: true,
-          originLocationId: data.originLocationId,
-          destinationLocationId: data.destinationLocationId,
           mode: data.mode,
+          OR: [
+            {
+              originLocationId: origin.id,
+              destinationLocationId: destination.id,
+            },
+            {
+              originLocation: {
+                country: origin.country,
+                city: { equals: origin.city ?? "", mode: "insensitive" },
+              },
+              destinationLocation: {
+                country: destination.country,
+                city: { equals: destination.city ?? "", mode: "insensitive" },
+              },
+            },
+          ],
         },
       });
       laneId = matched?.id;
@@ -127,8 +152,8 @@ shipmentsRouter.post(
           laneId,
           referenceCode,
           mode: data.mode,
-          originLocationId: data.originLocationId,
-          destinationLocationId: data.destinationLocationId,
+          originLocationId: origin.id,
+          destinationLocationId: destination.id,
           promisedEtd: data.promisedEtd ? new Date(data.promisedEtd) : undefined,
           promisedEta: data.promisedEta ? new Date(data.promisedEta) : undefined,
           weightKg: data.weightKg ?? undefined,
