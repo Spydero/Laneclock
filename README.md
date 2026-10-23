@@ -45,16 +45,28 @@ pnpm dev:api   # http://localhost:4000
 pnpm dev:web   # http://localhost:3000
 ```
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Marketing](docs/screenshots/01-marketing-home.png) | ![Command](docs/screenshots/02-command-tower.png) |
+| ![Analytics](docs/screenshots/03-analytics.png) | ![Shipments](docs/screenshots/04-shipments.png) |
+| ![Shipment detail](docs/screenshots/05-shipment-detail.png) | ![Exceptions](docs/screenshots/06-exceptions.png) |
+| ![Audit](docs/screenshots/07-audit.png) | ![Network](docs/screenshots/08-network.png) |
+
+New shipment (facility pickers + auto lane match): ![New shipment](docs/screenshots/09-new-shipment.png)
+
 ## 10-minute walkthrough
 
 1. Open `/`: marketing hero (Laneclock brand + phase clock pitch).
 2. Sign in as `ops@laneclock.demo` / `demo1234`.
 3. **Command**: KPIs, exception peek, activity feed.
-4. **Shipments**: open a late or in-transit load; inspect phase clock hours.
-5. Log a phase or generate a **public track** link → open `/track/...` in a private window.
-6. **Exceptions**: acknowledge / resolve; **Analytics**: OTIF, dwell, lanes, carriers, Pareto.
-7. **Audit**: click a row for before/after JSON.
-8. (Optional) **AI**: set `GEMINI_API_KEY`, generate weekly brief / delay explainer.
+4. **Network**: add facilities / lane templates (or use seeded ones).
+5. **Shipments**: create a load by picking origin + destination facilities; open a late or in-transit load for the phase clock.
+6. Log a phase or generate a **public track** link → open `/track/...` in a private window.
+7. **Exceptions**: acknowledge / resolve; **Analytics**: OTIF, dwell, lanes, carriers, Pareto.
+8. **Audit**: click a row for before/after JSON.
+9. (Optional) **AI**: set `GEMINI_API_KEY`, generate weekly brief / delay explainer.
 
 ## What is mocked vs real
 

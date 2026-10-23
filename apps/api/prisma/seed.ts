@@ -160,7 +160,7 @@ async function main() {
   const lanes = await Promise.all([
     prisma.lane.create({
       data: {
-        name: "LAX → CHI",
+        name: "LAX Crossdock → Chicago Hub",
         originLocationId: byCode["LAX-WH"].id,
         destinationLocationId: byCode["CHI-HUB"].id,
         expectedTransitHours: 42,
@@ -169,7 +169,7 @@ async function main() {
     }),
     prisma.lane.create({
       data: {
-        name: "CHI → DAL",
+        name: "Chicago Hub → Dallas DC",
         originLocationId: byCode["CHI-HUB"].id,
         destinationLocationId: byCode["DAL-DC"].id,
         expectedTransitHours: 18,
@@ -178,7 +178,7 @@ async function main() {
     }),
     prisma.lane.create({
       data: {
-        name: "SIN → RTM",
+        name: "Port of Singapore → Port of Rotterdam",
         originLocationId: byCode["SGSIN"].id,
         destinationLocationId: byCode["NLRTM"].id,
         expectedTransitHours: 480,
@@ -187,7 +187,7 @@ async function main() {
     }),
     prisma.lane.create({
       data: {
-        name: "LAX → JFK Air",
+        name: "LAX Crossdock → JFK Air Cargo",
         originLocationId: byCode["LAX-WH"].id,
         destinationLocationId: byCode["JFK-AP"].id,
         expectedTransitHours: 8,
@@ -196,7 +196,7 @@ async function main() {
     }),
     prisma.lane.create({
       data: {
-        name: "SEA → ATL",
+        name: "Seattle Hub → Atlanta Warehouse",
         originLocationId: byCode["SEA-HUB"].id,
         destinationLocationId: byCode["ATL-WH"].id,
         expectedTransitHours: 55,

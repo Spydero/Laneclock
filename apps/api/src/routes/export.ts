@@ -9,10 +9,13 @@ exportRouter.get(
   requireAuth,
   requireApprovedClient,
   async (req: AuthedRequest, res) => {
+    if (!req.membership) {
+      return res.status(403).json({ error: "No organization membership", code: "FORBIDDEN" });
+    }
     const where =
-      req.membership!.role === "CLIENT"
-        ? { customerOrgId: req.membership!.organizationId }
-        : { tenantOrgId: req.membership!.organizationId };
+      req.membership.role === "CLIENT"
+        ? { customerOrgId: req.membership.organizationId }
+        : { tenantOrgId: req.membership.organizationId };
 
     const shipments = await prisma.shipment.findMany({
       where,
@@ -53,11 +56,11 @@ exportRouter.get(
           s.referenceCode,
           s.status,
           s.mode,
-          csv(s.customerOrg.name),
+          csv(s.customerOrg?.name ?? ""),
           csv(s.carrier?.name ?? ""),
           csv(s.lane?.name ?? ""),
-          csv(s.originLocation.code),
-          csv(s.destinationLocation.code),
+          csv(s.originLocation?.code ?? ""),
+          csv(s.destinationLocation?.code ?? ""),
           s.promisedEta?.toISOString() ?? "",
           s.actualDeliveryAt?.toISOString() ?? "",
           s.slaOutcome,

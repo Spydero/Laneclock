@@ -94,10 +94,29 @@ shipmentsRouter.post(
       return res.status(400).json({ error: parsed.error.flatten(), code: "VALIDATION" });
     }
     const data = parsed.data;
+    if (data.originLocationId === data.destinationLocationId) {
+      return res.status(400).json({
+        error: "Origin and destination must differ",
+        code: "VALIDATION",
+      });
+    }
     const tenantOrgId = req.membership!.organizationId;
     const count = await prisma.shipment.count({ where: { tenantOrgId } });
     const referenceCode = `LC-${new Date().getFullYear()}-${String(count + 1).padStart(5, "0")}`;
     const token = createTrackingToken();
+
+    let laneId = data.laneId ?? undefined;
+    if (!laneId) {
+      const matched = await prisma.lane.findFirst({
+        where: {
+          active: true,
+          originLocationId: data.originLocationId,
+          destinationLocationId: data.destinationLocationId,
+          mode: data.mode,
+        },
+      });
+      laneId = matched?.id;
+    }
 
     const shipment = await prisma.$transaction(async (tx) => {
       const created = await tx.shipment.create({
@@ -105,7 +124,7 @@ shipmentsRouter.post(
           tenantOrgId,
           customerOrgId: data.customerOrgId,
           carrierId: data.carrierId ?? undefined,
-          laneId: data.laneId ?? undefined,
+          laneId,
           referenceCode,
           mode: data.mode,
           originLocationId: data.originLocationId,

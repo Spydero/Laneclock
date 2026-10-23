@@ -48,7 +48,11 @@ export default function ShipmentDetailPage() {
             <span className="font-mono text-teal-300">{shipment.referenceCode}</span>
           </h1>
           <p className="mt-1 text-sand-400">
-            {shipment.originLocation?.name} → {shipment.destinationLocation?.name}
+            {shipment.originLocation?.name}
+            {shipment.originLocation?.city ? ` (${shipment.originLocation.city})` : ""}
+            {" → "}
+            {shipment.destinationLocation?.name}
+            {shipment.destinationLocation?.city ? ` (${shipment.destinationLocation.city})` : ""}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

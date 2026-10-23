@@ -13,7 +13,7 @@ const opsLinks = [
   { href: "/app/shipments", label: "Shipments" },
   { href: "/app/exceptions", label: "Exceptions" },
   { href: "/app/analytics", label: "Analytics" },
-  { href: "/app/carriers", label: "Carriers" },
+  { href: "/app/network", label: "Network" },
   { href: "/app/invoices", label: "Invoices" },
   { href: "/app/audit", label: "Audit" },
   { href: "/app/notifications", label: "Alerts" },

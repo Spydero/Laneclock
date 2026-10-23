@@ -123,6 +123,24 @@ export function isOtif(outcome: SlaOutcome, inFull: boolean): boolean {
   return (outcome === "EARLY" || outcome === "ON_TIME") && inFull;
 }
 
+export const CreateLocationSchema = z.object({
+  code: z.string().min(2).max(32),
+  name: z.string().min(2).max(120),
+  city: z.string().min(1).max(80).optional().nullable(),
+  country: z.string().min(2).max(2),
+  type: LocationTypeSchema,
+});
+export type CreateLocationInput = z.infer<typeof CreateLocationSchema>;
+
+export const CreateLaneSchema = z.object({
+  name: z.string().min(2).max(160).optional().nullable(),
+  originLocationId: z.string().min(1),
+  destinationLocationId: z.string().min(1),
+  expectedTransitHours: z.number().positive(),
+  mode: FreightModeSchema,
+});
+export type CreateLaneInput = z.infer<typeof CreateLaneSchema>;
+
 export const CreateShipmentSchema = z.object({
   customerOrgId: z.string().min(1),
   carrierId: z.string().optional().nullable(),

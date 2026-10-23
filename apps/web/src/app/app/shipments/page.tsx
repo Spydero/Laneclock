@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { fmtDate, fmtHours, slaColor, statusColor } from "@/lib/format";
+import { formatFacility } from "@/lib/locations";
 import type { MeResponse, Shipment } from "@/lib/types";
 
 export default function ShipmentsPage() {
@@ -11,6 +12,8 @@ export default function ShipmentsPage() {
   const [status, setStatus] = useState("");
   const [q, setQ] = useState("");
   const [me, setMe] = useState<MeResponse | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   function load() {
     const params = new URLSearchParams();
@@ -19,6 +22,37 @@ export default function ShipmentsPage() {
     api<{ shipments: Shipment[] }>(`/v1/shipments?${params}`)
       .then((r) => setShipments(r.shipments))
       .catch(() => setShipments([]));
+  }
+
+  async function exportCsv() {
+    setExporting(true);
+    setExportError(null);
+    try {
+      const res = await fetch("/v1/export/shipments.csv", { credentials: "include" });
+      if (!res.ok) {
+        let message = "Export failed";
+        try {
+          const body = (await res.json()) as { error?: string };
+          if (typeof body.error === "string") message = body.error;
+        } catch {
+          /* ignore */
+        }
+        throw new Error(message);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "laneclock-shipments.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
   }
 
   useEffect(() => {
@@ -37,9 +71,9 @@ export default function ShipmentsPage() {
           <p className="text-sand-400">Phase clocks, SLA outcomes, and cargo.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a href="/v1/export/shipments.csv" className="btn-ghost" download>
-            Export CSV
-          </a>
+          <button type="button" className="btn-ghost" onClick={exportCsv} disabled={exporting}>
+            {exporting ? "Exporting…" : "Export CSV"}
+          </button>
           {canCreate && (
             <Link href="/app/shipments/new" className="btn-primary">
               New shipment
@@ -47,6 +81,7 @@ export default function ShipmentsPage() {
           )}
         </div>
       </div>
+      {exportError && <p className="text-sm text-signal-late">{exportError}</p>}
 
       <div className="flex flex-wrap gap-3">
         <input
@@ -101,7 +136,7 @@ export default function ShipmentsPage() {
                   <div className="text-xs text-sand-400">{s.mode}</div>
                 </td>
                 <td className="px-4 py-3 text-sand-200">
-                  {s.originLocation?.code} → {s.destinationLocation?.code}
+                  {formatFacility(s.originLocation)} → {formatFacility(s.destinationLocation)}
                 </td>
                 <td className="px-4 py-3">
                   <span className={`badge ${statusColor(s.status)}`}>{s.status}</span>
