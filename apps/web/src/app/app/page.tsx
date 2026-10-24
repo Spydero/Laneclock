@@ -66,8 +66,8 @@ export default function CommandPage() {
         </h1>
         <p className="mt-1 text-sand-400">
           {isClient
-            ? "On-time performance across your shipments."
-            : "Active clocks, open exceptions, and recent audit activity."}
+            ? "On-time performance across your active and delivered loads."
+            : "Live clocks, exception queue, and the latest audit trail."}
         </p>
       </div>
 
